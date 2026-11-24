@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #202124;
+      color: #e8eaed;
+      font-family: arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .g-search-pill {
+      background-color: #303134;
+      border: 1px solid #5f6368;
+      transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .g-search-pill:hover,
+    .g-search-pill:focus-within {
+      background-color: #303134;
+      border-color: rgba(223, 225, 229, 0);
+      box-shadow: 0 1px 6px 0 #171717;
+    }
+
+    .g-link {
+      color: #8ab4f8;
+    }
+
+    .g-link:hover {
+      text-decoration: underline;
+    }
+
+    .g-link:visited {
+      color: #c58af9;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #202124;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c4043;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #5f6368;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ==================== UNIFIED GOOGLE SEARCH HEADER ==================== -->
+  <header class="bg-[#202124] border-b border-[#3c4043] sticky top-0 z-40 pt-4 pb-3.5 px-4 sm:px-8">
+    <div class="max-w-[1360px] mx-auto flex flex-col gap-3">
+      <div class="flex flex-wrap md:flex-nowrap items-center gap-4 md:gap-7">
+        <button
+          type="button"
+          onclick="applyQuery('')"
+          class="text-[28px] font-normal tracking-[-1.2px] text-[#e8eaed] select-none cursor-pointer shrink-0"
+          title="Show all 6 indexed sites"
+        >
+          Google
+        </button>
+
+        <form onsubmit="handleSearchSubmit(event)" class="w-full max-w-[692px]">
+          <div class="g-search-pill flex items-center h-[44px] rounded-full px-4 shadow-sm">
+            <svg class="w-5 h-5 text-[#9aa0a6] mr-3 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <input
+              type="text"
+              id="searchInput"
+              value="pizza"
+              placeholder="Search the 6-site web (e.g., pizza, pune, cheap, recipe)..."
+              autocomplete="off"
+              aria-label="Search"
+              class="w-full bg-transparent text-[#e8eaed] text-[16px] focus:outline-none"
+            />
+            <button
+              type="button"
+              id="clearBtn"
+              onclick="clearSearchInput()"
+              class="text-[#9aa0a6] hover:text-[#e8eaed] px-2 text-xl leading-none cursor-pointer"
+              title="Clear"
+            >
+              &times;
+            </button>
+            <div class="flex items-center gap-3 pl-3 border-l border-[#5f6368]/60 ml-1 shrink-0">
+              <button type="submit" class="text-[#8ab4f8] hover:text-[#aecbfa] cursor-pointer" title="Search">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="flex items-center gap-2 text-[13px] text-[#9aa0a6] overflow-x-auto shrink-0">
+          <span class="hidden lg:inline">Try:</span>
+          <button type="button" onclick="applyQuery('pizza')" class="bg-[#303134] hover:bg-[#3c4043] text-[#8ab4f8] px-3 py-1 rounded-full border border-[#5f6368]/40 cursor-pointer whitespace-nowrap">pizza</button>
+          <button type="button" onclick="applyQuery('pune')" class="bg-[#303134] hover:bg-[#3c4043] text-[#8ab4f8] px-3 py-1 rounded-full border border-[#5f6368]/40 cursor-pointer whitespace-nowrap">pune</button>
+          <button type="button" onclick="applyQuery('')" class="bg-[#303134] hover:bg-[#3c4043] text-[#8ab4f8] px-3 py-1 rounded-full border border-[#5f6368]/40 cursor-pointer whitespace-nowrap">all (6)</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== PERMANENT SIDE-BY-SIDE DUAL ENGINE SERP ==================== -->
+  <main class="flex-1 px-4 sm:px-8 py-6">
+    <div class="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-start">
+
+      <!-- LEFT COLUMN: Google Search (PageRank Engine) -->
+      <section class="min-w-0 lg:border-r lg:border-[#3c4043] lg:pr-8">
+        <div class="flex items-center justify-between gap-3 pb-3 mb-4 border-b border-[#3c4043]">
+          <div>
+            <h2 class="text-[16px] font-medium text-[#e8eaed] flex items-center gap-2">
+              Google Search <span class="text-[#8ab4f8] text-[13px] font-normal">(PageRank Engine)</span>
+            </h2>
+            <div id="prStats" class="text-[13px] text-[#9aa0a6] mt-0.5">
+              About 6 results · Sorted strictly by link authority (d = 0.85)
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-[#81c995] bg-[#81c995]/10 border border-[#81c995]/30 px-2.5 py-1 rounded-full shrink-0">
+            Ranked Order
+          </span>
+        </div>
+
+        <div id="prResultsList" class="space-y-7"></div>
+      </section>
+
+      <!-- RIGHT COLUMN: Old Search (Keyword Frequency / Pre-PageRank Engine) -->
+      <section class="min-w-0">
+        <div class="flex items-center justify-between gap-3 pb-3 mb-4 border-b border-[#3c4043]">
+          <div>
+            <h2 class="text-[16px] font-medium text-[#e8eaed] flex items-center gap-2">
+              Old Search <span class="text-[#9aa0a6] text-[13px] font-normal">(Keyword Count / Pre-PageRank Engine)</span>
+            </h2>
+            <div id="randomStats" class="text-[13px] text-[#9aa0a6] mt-0.5">
+              About 6 results · Sorted strictly by keyword density (vulnerable to spam)
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-[#f28b82] bg-[#f28b82]/10 border border-[#f28b82]/30 px-2.5 py-1 rounded-full shrink-0">
+            Keyword Match
+          </span>
+        </div>
+
+        <div id="randomResultsList" class="space-y-7"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="bg-[#171717] text-[#9aa0a6] text-[13px] px-4 sm:px-8 py-4 border-t border-[#3c4043]">
+    <div class="max-w-[1360px] mx-auto flex flex-wrap items-center justify-between gap-2">
+      <span>India · Mini Google Index (6 Websites)</span>
+      <span>Side-by-Side Comparison: Iterative PageRank (d = 0.85) vs. Legacy Keyword-Frequency Search</span>
+    </div>
+  </footer>
+
+  <!-- ==================== SIMULATED WEBPAGE READER MODAL ==================== -->
+  <div
+    id="siteModal"
+    class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-4"
+    onclick="closeSiteModal(event)"
+  >
+    <div
+      class="bg-[#292a2d] border border-[#3c4043] rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[88vh]"
+      onclick="event.stopPropagation()"
+    >
+      <div class="bg-[#202124] px-4 py-2.5 border-b border-[#3c4043] flex items-center justify-between gap-3">
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="hideModal()" class="w-3 h-3 rounded-full bg-[#f28b82] hover:opacity-80 cursor-pointer" title="Close"></button>
+          <span class="w-3 h-3 rounded-full bg-[#fdd663]"></span>
+          <span class="w-3 h-3 rounded-full bg-[#81c995]"></span>
+        </div>
+        <div id="modalUrlBar" class="flex-1 bg-[#303134] text-[#bdc1c6] text-xs px-3 py-1 rounded-full truncate text-center">
+          https://Pune-food-guide.com
+        </div>
+        <button type="button" onclick="hideModal()" class="text-xs text-[#8ab4f8] hover:underline px-1.5 cursor-pointer shrink-0">Back to Search</button>
+      </div>
+
+      <div id="modalContent" class="p-6 overflow-y-auto space-y-4 text-[#e8eaed]"></div>
+    </div>
+  </div>
+
+  <script>
+    const WEBSITES = [
+      {
+        id: "Pune-food-guide.com",
+        siteName: "Pune Food Guide",
+        breadcrumb: "https://Pune-food-guide.com › directory › pune-eats",
+        date: "Oct 14, 2026",
+        title: "Pune Food Guide — Complete Local Restaurant & Street Food Directory",
+        snippet: "Explore Pune's highest-rated restaurants, heritage Irani cafes, wood-fired pizzerias, and student food hubs across FC Road, Koregaon Park, and Viman Nagar.",
+        keywords: "pune food guide directory restaurants cafes street food pizza cheap eats",
+        iconBg: "#1a73e8",
+        iconLetter: "P",
+        links: ["Best-pizza-pune.com", "Cheap-eats-pune.com"],
+        articleBody: "Welcome to Pune Food Guide, the city's primary editorial directory for local dining. Our editors independently verify neighborhood favorites—from late-night artisanal slices to pocket-friendly campus meals across Shivajinagar, Deccan, and KP."
+      },
+      {
+        id: "Best-pizza-pune.com",
+        siteName: "Best Pizza Pune",
+        breadcrumb: "https://Best-pizza-pune.com › reviews › top-pizzerias",
+        date: "Nov 2, 2026",
+        title: "Best Pizza in Pune — Artisanal Wood-Fired & Sourdough Pizza Reviews",
+        snippet: "Honest taste-tests and crust ratings for Pune's top Neapolitan and New York-style pizzerias, featuring fermentation notes, sauce balance, and price guides.",
+        keywords: "best pizza pune wood fired sourdough margherita neapolitan reviews",
+        iconBg: "#d93025",
+        iconLetter: "B",
+        links: ["Pune-food-guide.com", "Pizza.recepies-home.com"],
+        articleBody: "We sampled 28 pizzerias across Pune to benchmark blistered sourdough crusts, San Marzano tomato acidity, and fresh fior di latte. Listed in Pune Food Guide and partnered with Pizza Recipes Home."
+      },
+      {
+        id: "College-canteen-blog.com",
+        siteName: "College Canteen Blog",
+        breadcrumb: "https://College-canteen-blog.com › pune › campus-food",
+        date: "Sep 28, 2026",
+        title: "College Canteen Blog — Student Food Reviews & Pune Hangout Spots",
+        snippet: "Written by Pune university students: honest reviews of campus canteens, budget lunch thalis, and the best weekend pizza joints near FC Road and Viman Nagar.",
+        keywords: "college canteen blog student food pune hangout snacks cheap pizza",
+        iconBg: "#188038",
+        iconLetter: "C",
+        links: ["Pune-food-guide.com", "Best-pizza-pune.com", "Cheap-eats-pune.com"],
+        articleBody: "Between lectures and lab submissions, students need reliable places to eat without breaking the semester budget. Here are our go-to local directories, pizza spots, and under-₹150 meal guides around Pune."
+      },
+      {
+        id: "Pizza.recepies-home.com",
+        siteName: "Pizza Recipes Home",
+        breadcrumb: "https://Pizza.recepies-home.com › dough › neapolitan-guide",
+        date: "Aug 19, 2026",
+        title: "Home Pizza Recipes — 72-Hour Cold-Fermented Dough & Sauce Guide",
+        snippet: "Step-by-step home baking instructions for crispy-airy pizza dough, crushed plum tomato sauce, and high-heat home oven stone techniques.",
+        keywords: "pizza recipes home dough sauce baking margherita kitchen",
+        iconBg: "#e37400",
+        iconLetter: "R",
+        links: ["Pune-food-guide.com"],
+        articleBody: "Great pizza starts with hydration percentage and cold fermentation. Follow our 72-hour dough schedule—or if you're dining out in Maharashtra, browse the full local restaurant index on Pune Food Guide."
+      },
+      {
+        id: "Cheap-eats-pune.com",
+        siteName: "Cheap Eats Pune",
+        breadcrumb: "https://Cheap-eats-pune.com › budget › under-200",
+        date: "Oct 30, 2026",
+        title: "Cheap Eats Pune — Best Budget Meals & Pizza Slices Under ₹200",
+        snippet: "Your guide to affordable dining in Pune: value thalis, iconic street snacks, and budget-friendly pizza combos vetted for students and commuters.",
+        keywords: "cheap eats pune budget meals affordable food student pizza slices",
+        iconBg: "#9334e6",
+        iconLetter: "E",
+        links: ["Pune-food-guide.com"],
+        articleBody: "Eating well in Pune doesn't require fine-dining prices. We track daily student combos, street-side favorites, and cross-reference neighborhood listings with Pune Food Guide."
+      },
+      {
+        id: "Pizza-pizza-pizza.com",
+        siteName: "Pizza-pizza-pizza.com",
+        breadcrumb: "https://Pizza-pizza-pizza.com › best-pizza-pune-pizza-deals",
+        date: "Nov 10, 2026",
+        title: "PIZZA PIZZA PIZZA! Best Pizza Pune Pizza Cheap Pizza Deals Pizza!",
+        snippet: "Pizza pizza pizza! Best pizza in Pune pizza deals hot pizza cheap pizza order pizza now pizza pizza pizza delivery Pune!",
+        keywords: "pizza pizza pizza best pizza pune cheap pizza deals delivery",
+        iconBg: "#5f6368",
+        iconLetter: "!",
+        links: ["Pizza-pizza-pizza.com"],
+        articleBody: "PIZZA PIZZA PIZZA! Best pizza Pune pizza cheap pizza free pizza coupons pizza! (Note: Because PageRank strips self-links and requires real external endorsements, this spam page has 0 incoming connections and sits at the baseline floor score 0.0250.)"
+      }
+    ];
+
+    function calculatePageRanks(siteList, d = 0.85, tolerance = 1e-6, maxIterations = 250) {
+      const N = siteList.length;
+      const ids = siteList.map(s => s.id);
+      let ranks = {};
+      ids.forEach(id => { ranks[id] = 1 / N; });
+
+      for (let iter = 0; iter < maxIterations; iter++) {
+        const nextRanks = {};
+        const teleportBase = (1 - d) / N;
+
+        ids.forEach(id => {
+          nextRanks[id] = teleportBase;
+        });
+
+        siteList.forEach(source => {
+          const validOutbound = source.links.filter(targetId => targetId !== source.id && Object.prototype.hasOwnProperty.call(nextRanks, targetId));
+          const outCount = validOutbound.length;
+          if (outCount > 0) {
+            const share = d * (ranks[source.id] / outCount);
+            validOutbound.forEach(targetId => {
+              nextRanks[targetId] += share;
+            });
+          }
+        });
+
+        let diff = 0;
+        ids.forEach(id => {
+          diff += Math.abs(nextRanks[id] - ranks[id]);
+        });
+
+        ranks = nextRanks;
+        if (diff < tolerance) break;
+      }
+
+      return ranks;
+    }
+
+    function getIncomingCount(siteId) {
+      return WEBSITES.filter(s => s.id !== siteId && s.links.includes(siteId)).length;
+    }
+
+    const PAGE_RANKS = calculatePageRanks(WEBSITES);
+    const SORTED_WEBSITES = [...WEBSITES].sort((a, b) => {
+      const prDiff = PAGE_RANKS[b.id] - PAGE_RANKS[a.id];
+      if (Math.abs(prDiff) > 1e-9) return prDiff;
+      return getIncomingCount(b.id) - getIncomingCount(a.id);
+    });
+
+    function applyQuery(query) {
+      const input = document.getElementById("searchInput");
+      input.value = query;
+      updateClearButton();
+      renderBothEngines(query);
+    }
+
+    function handleSearchSubmit(event) {
+      event.preventDefault();
+      const query = document.getElementById("searchInput").value;
+      updateClearButton();
+      renderBothEngines(query);
+    }
+
+    function clearSearchInput() {
+      applyQuery("");
+      document.getElementById("searchInput").focus();
+    }
+
+    function updateClearButton() {
+      const input = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearBtn");
+      clearBtn.style.display = input.value.length > 0 ? "block" : "none";
+    }
+
+    function filterWebsites(query) {
+      const q = (query || "").trim().toLowerCase();
+      if (!q) return [...SORTED_WEBSITES];
+
+      const terms = q.split(/\s+/).filter(Boolean);
+      return SORTED_WEBSITES.filter(site => {
+        const haystack = `${site.id} ${site.siteName} ${site.title} ${site.snippet} ${site.keywords}`.toLowerCase();
+        return terms.every(term => haystack.includes(term));
+      });
+    }
+
+    function getKeywordMatchScore(site, query) {
+      const q = (query || "").trim().toLowerCase();
+      const corpus = `${site.id} ${site.siteName} ${site.title} ${site.snippet} ${site.keywords}`.toLowerCase();
+
+      if (!q) return 0;
+
+      const terms = q.split(/\s+/).filter(Boolean);
+      let totalHits = 0;
+
+      terms.forEach(term => {
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const matches = corpus.match(new RegExp(escaped, "g"));
+        const count = matches ? matches.length : 0;
+
+        const titleDomainText = `${site.id} ${site.title}`.toLowerCase();
+        const titleMatches = titleDomainText.match(new RegExp(escaped, "g"));
+        const titleBonus = titleMatches ? titleMatches.length * 2 : 0;
+
+        totalHits += count + titleBonus;
+      });
+
+      return totalHits;
+    }
+
+    function rankByKeywordFrequency(matches, query) {
+      const q = (query || "").trim();
+      if (!q) {
+        return [...matches].sort((a, b) => a.id.localeCompare(b.id));
+      }
+
+      return [...matches].sort((a, b) => {
+        const scoreDiff = getKeywordMatchScore(b, q) - getKeywordMatchScore(a, q);
+        if (scoreDiff !== 0) return scoreDiff;
+        return a.id.localeCompare(b.id);
+      });
+    }
+
+    function buildResultCardHtml(site, showPrBadge, query = "") {
+      const score = PAGE_RANKS[site.id].toFixed(4);
+      const inLinks = getIncomingCount(site.id);
+      const kwScore = getKeywordMatchScore(site, query);
+      const badgeHtml = showPrBadge
+        ? `<span
+            class="text-[11px] font-mono text-[#9aa0a6] bg-[#303134] px-2 py-0.5 rounded-full"
+            title="Calculated PageRank Score (d = 0.85) · ${inLinks} incoming connections"
+          >
+            PR ${score} · ${inLinks} in-links
+          </span>`
+        : `<span
+            class="text-[11px] font-mono text-[#9aa0a6] bg-[#303134] px-2 py-0.5 rounded-full"
+            title="Legacy keyword-frequency score (counts repeated keywords)"
+          >
+            ${query.trim() ? `Keyword Score: ${kwScore}` : "Alphabetical"}
+          </span>`;
+
+      return `
+        <article class="group">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <a
+              href="#${site.id}"
+              onclick="event.preventDefault(); openSiteModal('${site.id}')"
+              class="flex items-center gap-3 min-w-0"
+            >
+              <span
+                class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                style="background-color: ${site.iconBg};"
+              >
+                ${site.iconLetter}
+              </span>
+              <div class="min-w-0 leading-tight">
+                <div class="text-[14px] text-[#dadce0] truncate">${escapeHtml(site.siteName)}</div>
+                <div class="text-[12px] text-[#bdc1c6] truncate">${escapeHtml(site.breadcrumb)}</div>
+              </div>
+            </a>
+
+            <div class="flex items-center gap-2 shrink-0">
+              ${badgeHtml}
+              <button
+                type="button"
+                onclick="openSiteModal('${site.id}')"
+                class="text-[#9aa0a6] hover:text-[#e8eaed] p-1 rounded-full cursor-pointer"
+                title="Preview page"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <h3 class="text-[19px] leading-[1.3] font-normal mb-1">
+            <a
+              href="#${site.id}"
+              onclick="event.preventDefault(); openSiteModal('${site.id}')"
+              class="g-link"
+            >
+              ${escapeHtml(site.title)}
+            </a>
+          </h3>
+
+          <p class="text-[14px] leading-[1.55] text-[#bdc1c6]">
+            <span class="text-[#9aa0a6]">${site.date} — </span>${escapeHtml(site.snippet)}
+          </p>
+        </article>
+      `;
+    }
+
+    function renderEmptyMessage(query) {
+      return `
+        <div class="pt-2 text-[14px] text-[#bdc1c6] space-y-2">
+          <p>Your search - <strong class="text-[#e8eaed]">${escapeHtml(query)}</strong> - did not match any of the 6 indexed websites.</p>
+          <p class="text-[#9aa0a6]">Try <button type="button" onclick="applyQuery('pizza')" class="text-[#8ab4f8] hover:underline cursor-pointer">pizza</button>, <button type="button" onclick="applyQuery('pune')" class="text-[#8ab4f8] hover:underline cursor-pointer">pune</button>, or <button type="button" onclick="applyQuery('')" class="text-[#8ab4f8] hover:underline cursor-pointer">view all 6 sites</button>.</p>
+        </div>
+      `;
+    }
+
+    function renderBothEngines(query) {
+      const cleanQuery = (query || "").trim();
+      document.title = cleanQuery ? `${cleanQuery} - Google Search` : "Google Search";
+
+      const prMatches = filterWebsites(cleanQuery);
+      const legacyMatches = rankByKeywordFrequency(prMatches, cleanQuery);
+
+      const prStats = document.getElementById("prStats");
+      const randomStats = document.getElementById("randomStats");
+      const prList = document.getElementById("prResultsList");
+      const randomList = document.getElementById("randomResultsList");
+
+      if (prMatches.length === 0) {
+        prStats.textContent = "0 results · Sorted strictly by link authority (d = 0.85)";
+        randomStats.textContent = "0 results · Sorted by keyword repetition";
+        const emptyHtml = renderEmptyMessage(cleanQuery);
+        prList.innerHTML = emptyHtml;
+        randomList.innerHTML = emptyHtml;
+        return;
+      }
+
+      const countLabel = prMatches.length === 1 ? "1 result" : `About ${prMatches.length} results`;
+      prStats.textContent = `${countLabel} · Sorted strictly by link authority (d = 0.85)`;
+      randomStats.textContent = cleanQuery
+        ? `${countLabel} · Sorted by keyword repetition (no link analysis)`
+        : `${countLabel} · Sorted alphabetically (no query entered)`;
+
+      prList.innerHTML = prMatches.map(site => buildResultCardHtml(site, true, cleanQuery)).join("");
+      randomList.innerHTML = legacyMatches.map(site => buildResultCardHtml(site, false, cleanQuery)).join("");
+    }
+
+    function openSiteModal(siteId) {
+      const site = WEBSITES.find(s => s.id === siteId);
+      if (!site) return;
+
+      const rankPosition = SORTED_WEBSITES.findIndex(s => s.id === siteId) + 1;
+      const incoming = WEBSITES.filter(s => s.links.includes(siteId)).map(s => s.id);
+
+      document.getElementById("modalUrlBar").textContent = `https://${site.id}`;
+      document.getElementById("modalContent").innerHTML = `
+        <div class="flex items-center justify-between border-b border-[#3c4043] pb-4">
+          <div class="flex items-center gap-3">
+            <span
+              class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
+              style="background-color: ${site.iconBg};"
+            >
+              ${site.iconLetter}
+            </span>
+            <div>
+              <div class="font-semibold text-[16px] text-[#e8eaed]">${escapeHtml(site.siteName)}</div>
+              <div class="text-xs text-[#9aa0a6]">${escapeHtml(site.id)}</div>
+            </div>
+          </div>
+          <div class="text-right text-xs text-[#9aa0a6] font-mono">
+            <div>Search Rank: #${rankPosition} of 6</div>
+            <div>PageRank: ${PAGE_RANKS[site.id].toFixed(4)}</div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-medium text-[#e8eaed] mb-2">${escapeHtml(site.title)}</h2>
+          <p class="text-sm text-[#bdc1c6] leading-relaxed">${escapeHtml(site.articleBody)}</p>
+        </div>
+
+        <div class="pt-3 border-t border-[#3c4043]">
+          <div class="text-xs font-medium text-[#9aa0a6] uppercase tracking-wider mb-2">
+            Outbound Links on This Page (${site.links.length})
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${site.links.map(targetId => `
+              <button
+                type="button"
+                onclick="openSiteModal('${targetId}')"
+                class="text-xs bg-[#303134] hover:bg-[#3c4043] text-[#8ab4f8] px-3 py-1.5 rounded-full border border-[#5f6368]/50 transition cursor-pointer"
+              >
+                Visit ${escapeHtml(targetId)} &rarr;
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="text-xs text-[#9aa0a6] bg-[#202124] rounded-lg px-3.5 py-2.5">
+          <strong class="text-[#dadce0]">Incoming Backlinks (${incoming.length}):</strong>
+          ${incoming.length ? incoming.join(", ") : "None (0 external endorsements)"}
+        </div>
+      `;
+
+      document.getElementById("siteModal").classList.remove("hidden");
+    }
+
+    function hideModal() {
+      document.getElementById("siteModal").classList.add("hidden");
+    }
+
+    function closeSiteModal(event) {
+      if (event.target.id === "siteModal") {
+        hideModal();
+      }
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    document.getElementById("searchInput").addEventListener("input", () => {
+      updateClearButton();
+      renderBothEngines(document.getElementById("searchInput").value);
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") hideModal();
+    });
+
+    updateClearButton();
+    renderBothEngines(document.getElementById("searchInput").value);
+  </script>
+</body>
+</html>
